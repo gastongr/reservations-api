@@ -29,6 +29,19 @@ public interface ReservationRepository  extends JpaRepository<Reservation, Long>
 
 
     /**
+     * Find active reservations that overlap with the given date range excluding that of the provided Id.
+     * @param periodStart
+     * @param periodEnd
+     * @param excludeId
+     * @return The overlapping active reservations
+     */
+    @Query("SELECT r FROM Reservation r " +
+            "WHERE r.status = 0 AND :periodEnd > r.arrivalDate AND r.departureDate > :periodStart AND r.id <> :excludeId")
+    List<Reservation> findInPeriodExcluding(@Param("periodStart") LocalDate periodStart,
+                                          @Param("periodEnd") LocalDate periodEnd,
+                                          @Param("excludeId") Long excludeId);
+
+    /**
      * Find days not having an active reservation on the given date range.
      * @param periodStart
      * @param periodEnd

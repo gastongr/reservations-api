@@ -55,7 +55,7 @@ public class ReservationService {
     @Transactional
     public Reservation create(final CreateReservationRequest request) {
         LOGGER.info("Creating new reservation");
-        if (!this.isAvailable(request.getArrivalDate(), request.getDepartureDate())) {
+        if (!this.isAvailablePeriod(request.getArrivalDate(), request.getDepartureDate())) {
             throw new UnavailableDatesException();
         }
 
@@ -67,20 +67,36 @@ public class ReservationService {
 
     /**
      * Updates an existing Reservation fields on the database.
-     * @param updateReservationRequest
+     * @param request
      * @return Reservation
      */
     @Transactional
-    public Reservation update(final UpdateReservationRequest updateReservationRequest) {
-        LOGGER.info("Updating reservation by Id {}", updateReservationRequest.getId());
-        Reservation existingEntry = this.reservationRepository.findById(updateReservationRequest.getId())
+    public Reservation update(final UpdateReservationRequest request) {
+        LOGGER.info("Updating reservation by Id {}", request.getId());
+        Reservation existingEntry = this.reservationRepository.findById(request.getId())
                 .orElseThrow(NotFoundException::new);
 
-        if (existingEntry.getStatus() == ReservationStatusEnum.CANCELLED.getId()) {
+        if (ReservationStatusEnum.CANCELLED.getId().equals(existingEntry.getStatus())) {
             throw new MethodNotAllowedException("Cancelled reservations can not be updated");
         }
+        if (!this.isAvailablePeriodExcluding(request.getArrivalDate(), request.getDepartureDate(), request.getId())) {
+            throw new UnavailableDatesException();
+        }
 
-        BeanUtils.copyProperties(updateReservationRequest, existingEntry);
+        // Copy non-null properties to entity:
+        if (request.getGuestEmail() != null) {
+            existingEntry.setGuestEmail(request.getGuestEmail());
+        }
+        if (request.getGuestFullName() != null) {
+            existingEntry.setGuestFullName(request.getGuestFullName());
+        }
+        if (request.getArrivalDate() != null) {
+            existingEntry.setArrivalDate(request.getArrivalDate());
+        }
+        if (request.getDepartureDate() != null) {
+            existingEntry.setDepartureDate(request.getDepartureDate());
+        }
+
         return this.reservationRepository.save(existingEntry);
     }
 
@@ -106,8 +122,23 @@ public class ReservationService {
      * @param periodEnd
      * @return boolean
      */
-    public boolean isAvailable(LocalDate periodStart, LocalDate periodEnd) {
+    public boolean isAvailablePeriod(LocalDate periodStart, LocalDate periodEnd) {
         List<Reservation> overlappingReservations = this.reservationRepository.findInPeriod(periodStart, periodEnd);
+        return overlappingReservations.size() == 0;
+    }
+
+    /**
+     * Return whether a given period is available for reservation or not.
+     * In order to be available no active reservations have to overlap with the given dates.
+     * This method also ignores a reservation with the id provided.
+     * @param periodStart
+     * @param periodEnd
+     * @param reservationIdToExclude
+     * @return boolean
+     */
+    public boolean isAvailablePeriodExcluding(LocalDate periodStart, LocalDate periodEnd, Long reservationIdToExclude) {
+        List<Reservation> overlappingReservations = this.reservationRepository
+                .findInPeriodExcluding(periodStart, periodEnd, reservationIdToExclude);
         return overlappingReservations.size() == 0;
     }
 

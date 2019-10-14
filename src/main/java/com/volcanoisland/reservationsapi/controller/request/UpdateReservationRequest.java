@@ -2,6 +2,7 @@ package com.volcanoisland.reservationsapi.controller.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import javax.validation.constraints.Future;
 import java.time.LocalDate;
 
 public class UpdateReservationRequest {
@@ -9,10 +10,22 @@ public class UpdateReservationRequest {
     private Long id;
     private String guestEmail;
     private String guestFullName;
+    @Future
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate arrivalDate;
+    @Future
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate departureDate;
+
+    public UpdateReservationRequest() {
+    }
+
+    public UpdateReservationRequest(String guestEmail, String guestFullName, @Future LocalDate arrivalDate, @Future LocalDate departureDate) {
+        this.guestEmail = guestEmail;
+        this.guestFullName = guestFullName;
+        this.arrivalDate = arrivalDate;
+        this.departureDate = departureDate;
+    }
 
     public Long getId() {
         return id;
