@@ -20,6 +20,11 @@ public class CalendarDaySeeder {
     private CalendarDayRepository calendarDayRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(CalendarDaySeeder.class);
 
+    /**
+     * Initializes the CalendarDay table with future dates so that
+     * it can be used to build availability data.
+     * @param event
+     */
     @EventListener(ApplicationReadyEvent.class)
     public void seedCalendarTable(ApplicationReadyEvent event) {
         if (this.calendarDayRepository.count() > 0) {

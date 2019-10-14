@@ -10,6 +10,11 @@ public enum ReservationStatusEnum {
         this.id = id;
     }
 
+    /**
+     * Get enum value by it's id.
+     * @param id
+     * @return ReservationStatusEnum
+     */
     public static ReservationStatusEnum getById(Integer id) {
         if (id != null) {
             for (ReservationStatusEnum status : ReservationStatusEnum.values()) {

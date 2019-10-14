@@ -28,16 +28,30 @@ public class ReservationService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ReservationService.class);
 
+    /**
+     * Fetch all reservations on the database.
+     * @return List<Reservation>
+     */
     public List<Reservation> findAll() {
         LOGGER.info("Fetching all reservations");
         return this.reservationRepository.findAll();
     }
 
+    /**
+     * Fetches a single reservation by Id or fails.
+     * @param id
+     * @return Reservation
+     */
     public Reservation findOne(final Long id) {
         LOGGER.info("Fetching reservation by Id {}", id);
         return this.reservationRepository.findById(id).orElseThrow(NotFoundException::new);
     }
 
+    /**
+     * Creates a new Reservation entry in the database.
+     * @param request
+     * @return Reservation
+     */
     @Transactional
     public Reservation create(final CreateReservationRequest request) {
         LOGGER.info("Creating new reservation");
@@ -51,6 +65,11 @@ public class ReservationService {
         );
     }
 
+    /**
+     * Updates an existing Reservation fields on the database.
+     * @param updateReservationRequest
+     * @return Reservation
+     */
     @Transactional
     public Reservation update(final UpdateReservationRequest updateReservationRequest) {
         LOGGER.info("Updating reservation by Id {}", updateReservationRequest.getId());
@@ -65,6 +84,11 @@ public class ReservationService {
         return this.reservationRepository.save(existingEntry);
     }
 
+    /**
+     * Cancels an existing Reservation by Id, updating the status field on the database.
+     * @param id
+     * @return Reservation
+     */
     @Transactional
     public Reservation cancel(final Long id) {
         LOGGER.info("Cancelling reservation by Id {}", id);
@@ -75,15 +99,29 @@ public class ReservationService {
         return this.reservationRepository.save(existingEntry);
     }
 
+    /**
+     * Return whether a given period is available for reservation or not.
+     * In order to be available no active reservations have to overlap with the given dates.
+     * @param periodStart
+     * @param periodEnd
+     * @return boolean
+     */
     public boolean isAvailable(LocalDate periodStart, LocalDate periodEnd) {
         List<Reservation> overlappingReservations = this.reservationRepository.findInPeriod(periodStart, periodEnd);
         return overlappingReservations.size() == 0;
     }
 
+    /**
+     * Fetches the days from the given range in which the campsite is available for reservation.
+     * @param periodStart
+     * @param periodEnd
+     * @return List<LocalDate>
+     */
     public List<LocalDate> findAvailableDays(LocalDate periodStart, LocalDate periodEnd) {
         if (periodStart.isAfter(periodEnd)) {
             throw new BadRequestException("Invalid dates range supplied");
         }
+        LOGGER.info("Looking up availability between dates {} {}", periodStart, periodEnd);
         return this.reservationRepository.findAvailableDays(periodStart, periodEnd)
                 .stream().map(d -> d.getDay())
                 .collect(Collectors.toList());

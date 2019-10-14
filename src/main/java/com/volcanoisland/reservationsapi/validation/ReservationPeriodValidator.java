@@ -1,6 +1,5 @@
 package com.volcanoisland.reservationsapi.validation;
 
-import com.volcanoisland.reservationsapi.exception.BadRequestException;
 import org.springframework.beans.BeanWrapperImpl;
 
 import javax.validation.ConstraintValidator;
@@ -29,6 +28,13 @@ public class ReservationPeriodValidator implements ConstraintValidator<ValidRese
         this.departureField = constraintAnnotation.departureField();
     }
 
+    /**
+     * Validates the arrivalDate and departureDate of a reservation period
+     * against custom system constraints.
+     * @param value
+     * @param context
+     * @return boolean
+     */
     public boolean isValid(Object value, ConstraintValidatorContext context) {
 
         final LocalDate arrivalDate = (LocalDate) new BeanWrapperImpl(value).getPropertyValue(arrivalField);
@@ -68,6 +74,12 @@ public class ReservationPeriodValidator implements ConstraintValidator<ValidRese
         return true;
     }
 
+    /**
+     * Updates the ConstraintValidatorContext with appropriate error information
+     * so that it can be included in the exception raised later on.
+     * @param context
+     * @param error
+     */
     private void updateContext(ConstraintValidatorContext context, String error) {
         context.disableDefaultConstraintViolation();
         context.buildConstraintViolationWithTemplate(error)

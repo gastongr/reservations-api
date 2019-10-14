@@ -23,6 +23,10 @@ public class ReservationsController {
     @Autowired
     private ReservationService reservationService;
 
+    /**
+     * Fetch all reservations.
+     * @return ResponseEntity<List<ReservationDto>>
+     */
     @GetMapping()
     public ResponseEntity<List<ReservationDto>> getReservations() {
         List<Reservation> reservations = reservationService.findAll();
@@ -33,6 +37,11 @@ public class ReservationsController {
         );
     }
 
+    /**
+     * Fetch a single reservation by it's ID.
+     * @param id
+     * @return ResponseEntity<ReservationDto>
+     */
     @GetMapping("/{id}")
     public ResponseEntity<ReservationDto> getReservation(@PathVariable("id") Long id) {
         Reservation reservation = reservationService.findOne(id);
@@ -40,6 +49,12 @@ public class ReservationsController {
         return ResponseEntity.ok().body(ReservationDtoBuilder.aReservationDto().fromReservation(reservation).build());
     }
 
+    /**
+     * Partially update an existing reservation by ID.
+     * @param request
+     * @param id
+     * @return ResponseEntity<ReservationDto>
+     */
     @PatchMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<ReservationDto> updateReservation(@RequestBody @Valid UpdateReservationRequest request, @PathVariable("id") Long id) {
         request.setId(id);
@@ -50,6 +65,11 @@ public class ReservationsController {
                 .build());
     }
 
+    /**
+     * Cancel a reservation by ID.
+     * @param id
+     * @return ResponseEntity<ReservationDto>
+     */
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<ReservationDto> cancelReservation(@PathVariable("id") Long id) {
         Reservation updatedReservation = reservationService.cancel(id);
@@ -59,6 +79,11 @@ public class ReservationsController {
                 .build());
     }
 
+    /**
+     * Create a new reservation with the provided details.
+     * @param request
+     * @return ResponseEntity<ReservationDto>
+     */
     @PostMapping(consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<ReservationDto> createReservation(@RequestBody @Valid CreateReservationRequest request) {
         Reservation newReservation = reservationService.create(request);

@@ -26,6 +26,12 @@ public class AvailabilityController {
     @Autowired
     private ReservationService reservationService;
 
+    /**
+     * Looks up availability of the campsite on the given date range.
+     * @param from
+     * @param to
+     * @return ResponseEntity<AvailabilityDto>
+     */
     @GetMapping()
     public ResponseEntity<AvailabilityDto> getAvailability(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @Future LocalDate from,
                                                              @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @Future LocalDate to) {
