@@ -11,10 +11,8 @@ import com.volcanoisland.reservationsapi.model.ReservationStatusEnum;
 import com.volcanoisland.reservationsapi.repository.ReservationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -25,7 +23,6 @@ public class ReservationService {
 
     @Autowired
     private ReservationRepository reservationRepository;
-
     private static final Logger LOGGER = LoggerFactory.getLogger(ReservationService.class);
 
     /**
@@ -49,12 +46,21 @@ public class ReservationService {
 
     /**
      * Creates a new Reservation entry in the database.
+     *
+     * Concurrency considerations:
+     * Since a different thread could save an overlapping reservation between the availability check and the actual
+     * creation on this method, we need to avoid concurrent execution thus the synchronized keyword.
+     *
+     * If this application had multiple instances accessing to the same database, then thread synchronization would
+     * not be enough. In such case database locking or preferable database constrains would have to be used
+     * to avoid possible overlapping dates.
+     *
      * @param request
      * @return Reservation
      */
-    @Transactional
-    public Reservation create(final CreateReservationRequest request) {
-        LOGGER.info("Creating new reservation");
+    public synchronized Reservation create(final CreateReservationRequest request) {
+        LOGGER.info("Creating new reservation {}", request);
+
         if (!this.isAvailablePeriod(request.getArrivalDate(), request.getDepartureDate())) {
             throw new UnavailableDatesException();
         }
@@ -66,13 +72,21 @@ public class ReservationService {
     }
 
     /**
-     * Updates an existing Reservation fields on the database.
+     * Updates an existing Reservation on the database.
+     *
+     * Concurrency considerations:
+     * Since a different thread could save an overlapping reservation between the availability check and the actual
+     * update on this method, we need to avoid concurrent execution thus the synchronized keyword.
+     *
+     * If this application had multiple instances accessing to the same database, then thread synchronization would
+     * not be enough. In such case database locking or preferable database constrains would have to be used
+     * to avoid possible overlapping dates.
+     *
      * @param request
      * @return Reservation
      */
-    @Transactional
-    public Reservation update(final UpdateReservationRequest request) {
-        LOGGER.info("Updating reservation by Id {}", request.getId());
+    public synchronized Reservation update(final UpdateReservationRequest request) {
+        LOGGER.info("Updating reservation {}", request);
         Reservation existingEntry = this.reservationRepository.findById(request.getId())
                 .orElseThrow(NotFoundException::new);
 
@@ -105,7 +119,6 @@ public class ReservationService {
      * @param id
      * @return Reservation
      */
-    @Transactional
     public Reservation cancel(final Long id) {
         LOGGER.info("Cancelling reservation by Id {}", id);
         Reservation existingEntry = this.reservationRepository.findById(id)

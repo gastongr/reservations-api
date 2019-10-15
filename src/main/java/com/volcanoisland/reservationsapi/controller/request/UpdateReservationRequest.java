@@ -27,6 +27,11 @@ public class UpdateReservationRequest {
         this.departureDate = departureDate;
     }
 
+    public UpdateReservationRequest(@Future LocalDate arrivalDate, @Future LocalDate departureDate) {
+        this.arrivalDate = arrivalDate;
+        this.departureDate = departureDate;
+    }
+
     public Long getId() {
         return id;
     }
@@ -67,4 +72,14 @@ public class UpdateReservationRequest {
         this.departureDate = departureDate;
     }
 
+    @Override
+    public String toString() {
+        return "UpdateReservationRequest{" +
+                "id=" + id +
+                ", guestEmail='" + guestEmail + '\'' +
+                ", guestFullName='" + guestFullName + '\'' +
+                ", arrivalDate=" + arrivalDate +
+                ", departureDate=" + departureDate +
+                '}';
+    }
 }

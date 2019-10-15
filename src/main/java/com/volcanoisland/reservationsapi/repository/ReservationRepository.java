@@ -14,7 +14,9 @@ import java.util.List;
 @Repository
 public interface ReservationRepository  extends JpaRepository<Reservation, Long> {
 
-    Reservation findByid(Long productName);
+    Reservation findByid(Long id);
+
+    List<Reservation> findAllByGuestEmail(String email);
 
     /**
      * Find active reservations that overlap with the given date range.

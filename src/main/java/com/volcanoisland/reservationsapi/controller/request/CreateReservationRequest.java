@@ -73,4 +73,14 @@ public class CreateReservationRequest {
     public void setDepartureDate(LocalDate departureDate) {
         this.departureDate = departureDate;
     }
+
+    @Override
+    public String toString() {
+        return "CreateReservationRequest{" +
+                "guestEmail='" + guestEmail + '\'' +
+                ", guestFullName='" + guestFullName + '\'' +
+                ", arrivalDate=" + arrivalDate +
+                ", departureDate=" + departureDate +
+                '}';
+    }
 }
