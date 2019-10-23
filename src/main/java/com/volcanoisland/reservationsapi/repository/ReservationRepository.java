@@ -1,6 +1,5 @@
 package com.volcanoisland.reservationsapi.repository;
 
-import com.volcanoisland.reservationsapi.model.CalendarDay;
 import com.volcanoisland.reservationsapi.model.Reservation;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -42,22 +41,6 @@ public interface ReservationRepository  extends JpaRepository<Reservation, Long>
     List<Reservation> findInPeriodExcluding(@Param("periodStart") LocalDate periodStart,
                                           @Param("periodEnd") LocalDate periodEnd,
                                           @Param("excludeId") Long excludeId);
-
-    /**
-     * Find days not having an active reservation on the given date range.
-     * @param periodStart
-     * @param periodEnd
-     * @return The available days
-     */
-    @Query("SELECT c FROM CalendarDay c " +
-            "LEFT JOIN Reservation r ON c.day >= r.arrivalDate " +
-            "                      AND c.day < r.departureDate " +
-            "WHERE c.day <= :periodEnd AND c.day >= :periodStart " +
-            "AND (r.id IS NULL OR r.status = 1) " +
-            "ORDER BY c.day ASC")
-    List<CalendarDay> findAvailableDays(@Param("periodStart") LocalDate periodStart,
-                                        @Param("periodEnd") LocalDate periodEnd);
-
 
 }
 

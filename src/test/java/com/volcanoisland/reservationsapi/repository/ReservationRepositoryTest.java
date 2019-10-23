@@ -1,6 +1,5 @@
 package com.volcanoisland.reservationsapi.repository;
 
-import com.volcanoisland.reservationsapi.model.CalendarDay;
 import com.volcanoisland.reservationsapi.model.Reservation;
 import org.junit.Assert;
 import org.junit.Test;
@@ -57,35 +56,6 @@ public class ReservationRepositoryTest {
         reservations = reservationRepository.findInPeriod(LocalDate.parse("2020-02-11"), LocalDate.parse("2020-02-12"));
         // then
         Assert.assertEquals(1, reservations.size());
-    }
-
-    @Test
-    public void testFindAvailableDays_reservationLimits() {
-        // given
-        Reservation george = new Reservation("george@harrison.com", "George Harrison",
-                LocalDate.parse("2020-03-10"), LocalDate.parse("2020-03-13"));
-        entityManager.persistAndFlush(george);
-
-        // When availability is checked on a period containing the end date of an existing reservation, it is available
-        List<CalendarDay> availableDays = reservationRepository.findAvailableDays(LocalDate.parse("2020-03-13"), LocalDate.parse("2020-03-15"));
-        // then
-        Assert.assertEquals(3, availableDays.size());
-
-        // When availability is checked on a period containing the start date of an existing reservation, it is not available
-        availableDays = reservationRepository.findAvailableDays(LocalDate.parse("2020-03-08"), LocalDate.parse("2020-03-10"));
-        // then
-        Assert.assertEquals(2, availableDays.size());
-
-        // When availability is checked on the start date of an existing reservation, it is not available
-        availableDays = reservationRepository.findAvailableDays(LocalDate.parse("2020-03-10"), LocalDate.parse("2020-03-10"));
-        // then
-        Assert.assertTrue(availableDays.isEmpty());
-
-        // When availability is checked on the end date of an existing reservation, it is available
-        availableDays = reservationRepository.findAvailableDays(LocalDate.parse("2020-03-13"), LocalDate.parse("2020-03-13"));
-        // then
-        Assert.assertFalse(availableDays.isEmpty());
-
     }
 
 }

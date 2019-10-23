@@ -1,5 +1,6 @@
 package com.volcanoisland.reservationsapi.service;
 
+import com.google.common.collect.Lists;
 import com.volcanoisland.reservationsapi.controller.request.CreateReservationRequest;
 import com.volcanoisland.reservationsapi.controller.request.UpdateReservationRequest;
 import com.volcanoisland.reservationsapi.exception.BadRequestException;
@@ -165,10 +166,24 @@ public class ReservationService {
         if (periodStart.isAfter(periodEnd)) {
             throw new BadRequestException("Invalid dates range supplied");
         }
-        LOGGER.info("Looking up availability between dates {} {}", periodStart, periodEnd);
-        return this.reservationRepository.findAvailableDays(periodStart, periodEnd)
-                .stream().map(d -> d.getDay())
-                .collect(Collectors.toList());
+
+        List<Reservation> existingReservations = reservationRepository.findInPeriod(periodStart, periodEnd);
+        List<LocalDate> occupiedDates = getDatesOccupiedByReservations(existingReservations);
+
+        return periodStart.datesUntil(periodEnd).filter(d -> !occupiedDates.contains(d)).collect(Collectors.toList());
+    }
+
+    /**
+     * Calculate all the occupied dates by the given list of reservations.
+     * @param reservations
+     * @return List<LocalDate> occupied dates
+     */
+    private List<LocalDate> getDatesOccupiedByReservations(List<Reservation> reservations) {
+        List<LocalDate> occupiedDays = Lists.newArrayList();
+        reservations.forEach(r ->
+                occupiedDays.addAll(r.getArrivalDate().datesUntil(r.getDepartureDate()).collect(Collectors.toList())));
+
+        return occupiedDays;
     }
 
 }
