@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -45,30 +46,24 @@ public class ReservationService {
     }
 
     /**
-     * Creates a new Reservation entry in the database.
-     *
-     * Concurrency considerations:
-     * Since a different thread could save an overlapping reservation between the availability check and the actual
-     * creation on this method, we need to avoid concurrent execution thus the synchronized keyword.
-     *
-     * If this application had multiple instances accessing to the same database, then thread synchronization would
-     * not be enough. In such case database locking or preferable database constrains would have to be used
-     * to avoid possible overlapping dates.
+     * Creates a new Reservation entry in the database, given there are no overlaps, using a conditional insert.
      *
      * @param request
      * @return Reservation
      */
-    public synchronized Reservation create(final CreateReservationRequest request) {
+    @Transactional
+    public Reservation create(final CreateReservationRequest request) {
         LOGGER.info("Creating new reservation {}", request);
 
-        if (!this.isAvailablePeriod(request.getArrivalDate(), request.getDepartureDate())) {
+        int affectedRows = this.reservationRepository.saveIfAvailable(request.getArrivalDate(),
+                request.getDepartureDate(), request.getGuestEmail(), request.getGuestFullName());
+
+        if (affectedRows == 0) {
             throw new UnavailableDatesException();
         }
 
-        return this.reservationRepository.save(
-                new Reservation(request.getGuestEmail(), request.getGuestFullName(),
-                        request.getArrivalDate(), request.getDepartureDate())
-        );
+        return this.reservationRepository.getReservationByArrivalDateEqualsAndDepartureDateEquals(request.getArrivalDate(),
+                request.getDepartureDate());
     }
 
     /**
